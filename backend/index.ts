@@ -2,7 +2,7 @@ import express, { type Express, type Request, type Response } from "express";
 import bodyParser from "body-parser";
 import morgan from "morgan";
 import http from "http";
-
+import cors from "cors";
 import { initDB } from "./app/common/services/database.service";
 import { initPassport } from "./app/common/services/passport-jwt.service";
 import { loadConfig } from "./app/common/helper/config.hepler";
@@ -14,7 +14,7 @@ loadConfig();
 
 declare global {
   namespace Express {
-    interface User extends Omit<IUser, "password"> { }
+    interface User extends Omit<IUser, "password"> {}
     interface Request {
       user?: User;
     }
@@ -25,11 +25,16 @@ const port = Number(process.env.PORT) ?? 5000;
 
 const app: Express = express();
 
-
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(express.json());
 app.use(morgan("dev"));
+
+const corsOptions = {
+  origin: ["http://localhost:3000"],
+  methods: ["GET", "POST"],
+};
+app.use(cors(corsOptions));
 
 const initApp = async (): Promise<void> => {
   // init mongodb
@@ -44,8 +49,6 @@ const initApp = async (): Promise<void> => {
   app.get("/", (req: Request, res: Response) => {
     res.send({ status: "ok" });
   });
-
-
 
   // error handler
   app.use(errorHandler);
